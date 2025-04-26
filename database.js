@@ -28,18 +28,22 @@ const db = new sqlite3.Database('./users.db', (err) => {
                 FOREIGN KEY(user_id) REFERENCES users(id)
             )
         `);
+// leaderboard table
 
-        // leaderboard table
         db.run(`
             CREATE TABLE IF NOT EXISTS leaderboard (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                total_score INTEGER NOT NULL,
-                time_taken INTEGER NOT NULL,
-                recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(user_id) REFERENCES users(id)
-            )
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            total_score INTEGER NOT NULL,
+            time_taken INTEGER NOT NULL,
+            level_name TEXT NOT NULL,
+            recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id),
+            UNIQUE(user_id, level_name) 
+        );
+
         `);
+        
         
     }
 });

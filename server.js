@@ -85,34 +85,43 @@ app.get('/user/:id', (req, res) => {
 
 
 app.put('/leaderboard-data', (req, res) => {
-    const { user_id, total_score, time_taken } = req.body;
-    const sql = `INSERT INTO leaderboard (user_id, total_score, time_taken)
-                 VALUES (?, ?, ?)`;
-    db.run(sql, [user_id, total_score, time_taken], function (err) {
+    const { user_id, total_score, time_taken, level_name } = req.body;
+    const sql = `
+        INSERT INTO leaderboard (user_id, total_score, time_taken, level_name)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(user_id, level_name) DO UPDATE SET
+            total_score = excluded.total_score,
+            time_taken = excluded.time_taken,
+            recorded_at = CURRENT_TIMESTAMP
+    `;
+    db.run(sql, [user_id, total_score, time_taken, level_name], function (err) {
         if (err) return res.status(400).json({ error: err.message });
         res.json({ message: 'Score recorded successfully' });
     });
 });
 
 
-app.get('/leaderboard', (req, res) => {
+
+app.get('/leaderboard/:level', (req, res) => {
+    const level = req.params.level;
     const sql = `
         SELECT users.username, leaderboard.total_score, leaderboard.time_taken
         FROM leaderboard
         JOIN users ON leaderboard.user_id = users.id
+        WHERE leaderboard.level_name = ?
         ORDER BY leaderboard.total_score DESC, leaderboard.time_taken ASC
     `;
-    db.all(sql, [], (err, rows) => {
+    db.all(sql, [level], (err, rows) => {
         if (err) return res.status(400).json({ error: err.message });
-        
-        
+
         rows.forEach((row, index) => {
-            row.rank = index + 1; 
+            row.rank = index + 1;
         });
-        
+
         res.json(rows);
     });
 });
+
 
 
 app.put('/update-progress', (req, res) => {
