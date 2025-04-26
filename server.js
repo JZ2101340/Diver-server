@@ -4,10 +4,11 @@ const bodyParser = require('body-parser');
 const db = require('./database');
 const app = express();
 const cookieParser = require('cookie-parser');
-const PORT = 3000;
+//const PORT = 3000;
 const bcrypt = require('bcrypt');
-
-
+app.use(express.urlencoded({ extended: true }));  // ✅ to handle x-www-form-urlencoded POST/PUT
+const sqlite3 = require('sqlite3').verbose();
+app.use(express.json()); 
 app.use(cors()); 
 app.use(bodyParser.json()); 
 app.use(cookieParser()); 
@@ -115,50 +116,56 @@ app.get('/leaderboard', (req, res) => {
 
 
 app.put('/update-progress', (req, res) => {
-    console.log("Received progress update:", req.body);  
+    console.log("✅ Received progress update:", req.body);
 
-    const { user_id, current_level, last_checkpoint, oxygen_level, total_score, time_taken } = req.body;
+    const { user_id, current_level, checkpointsReached, oxygen_level, total_score, time_taken } = req.body;
 
-    console.log("User ID:", user_id); 
+    if (!user_id || !current_level) {
+        return res.status(400).json({ error: '❌ Missing user_id or current_level!' });
+    }
 
     const sql = `
         INSERT INTO progress (
             user_id,
             current_level,
-            last_checkpoint,
+            checkpointsReached,
             oxygen_level,
             total_score,
             time_taken
         ) VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
             current_level = excluded.current_level,
+            checkpointsReached = excluded.checkpointsReached,
             oxygen_level = excluded.oxygen_level,
-            last_checkpoint = excluded.last_checkpoint,
             total_score = excluded.total_score,
             time_taken = excluded.time_taken
     `;
 
-    db.run(sql, [user_id, current_level, last_checkpoint, oxygen_level, total_score, time_taken], function (err) {
+    db.run(sql, [user_id, current_level, checkpointsReached, oxygen_level, total_score, time_taken], function (err) {
         if (err) {
-            return res.status(400).json({ error: err.message });
+            console.error("❌ Database Error:", err.message);
+            return res.status(500).json({ error: err.message });
         }
-        res.json({ message: 'Progress updated successfully' });
+        res.status(200).json({ message: '✅ Progress updated successfully!' });
     });
 });
 
-
-
-
-
-
-
+// === GET: Fetch Progress ===
 app.get('/progress/:user_id', (req, res) => {
     const sql = `SELECT * FROM progress WHERE user_id = ?`;
+
     db.get(sql, [req.params.user_id], (err, row) => {
-        if (err) return res.status(400).json({ error: err.message });
-        res.json(row);
+        if (err) {
+            console.error("❌ Database Error:", err.message);
+            return res.status(500).json({ error: err.message });
+        }
+        if (!row) {
+            return res.status(404).json({ error: "❌ Progress not found" });
+        }
+        res.status(200).json(row);
     });
 });
+
 
 
 
@@ -181,6 +188,7 @@ app.delete('/user/:id', (req, res) => {
 });
 
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

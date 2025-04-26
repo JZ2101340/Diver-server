@@ -5,7 +5,6 @@ const db = new sqlite3.Database('./users.db', (err) => {
         console.error("Error opening database:", err.message);
     } else {
         console.log("Connected to SQLite database");
-
         // users table
         db.run(`
             CREATE TABLE IF NOT EXISTS users (
@@ -20,9 +19,9 @@ const db = new sqlite3.Database('./users.db', (err) => {
         db.run(`
             CREATE TABLE IF NOT EXISTS progress (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
+                user_id INTEGER UNIQUE,
                 current_level TEXT DEFAULT 'Easy',
-                last_checkpoint INTEGER DEFAULT 0,
+                checkpointsReached INTEGER DEFAULT 0,
                 oxygen_level INTEGER DEFAULT 100,
                 total_score INTEGER DEFAULT 0,
                 time_taken INTEGER DEFAULT 0,
