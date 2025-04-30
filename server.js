@@ -4,9 +4,8 @@ const bodyParser = require('body-parser');
 const db = require('./database');
 const app = express();
 const cookieParser = require('cookie-parser');
-//const PORT = 3000;
 const bcrypt = require('bcrypt');
-app.use(express.urlencoded({ extended: true }));  // ✅ to handle x-www-form-urlencoded POST/PUT
+app.use(express.urlencoded({ extended: true }));  
 const sqlite3 = require('sqlite3').verbose();
 app.use(express.json()); 
 app.use(cors()); 
@@ -39,7 +38,6 @@ app.post('/register', (req, res) => {
 
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
-
     const sql = `SELECT * FROM users WHERE email = ?`;
     db.get(sql, [email], (err, row) => {
         if (err) {
@@ -125,12 +123,12 @@ app.get('/leaderboard/:level', (req, res) => {
 
 
 app.put('/update-progress', (req, res) => {
-    console.log("✅ Received progress update:", req.body);
+    console.log("Received progress update:", req.body);
 
     const { user_id, current_level, checkpointsReached, oxygen_level, total_score, time_taken } = req.body;
 
     if (!user_id || !current_level) {
-        return res.status(400).json({ error: '❌ Missing user_id or current_level!' });
+        return res.status(400).json({ error: 'Missing user_id or current_level!' });
     }
 
     const sql = `
@@ -152,24 +150,24 @@ app.put('/update-progress', (req, res) => {
 
     db.run(sql, [user_id, current_level, checkpointsReached, oxygen_level, total_score, time_taken], function (err) {
         if (err) {
-            console.error("❌ Database Error:", err.message);
+            console.error("Database Error:", err.message);
             return res.status(500).json({ error: err.message });
         }
-        res.status(200).json({ message: '✅ Progress updated successfully!' });
+        res.status(200).json({ message: 'Progress updated successfully!' });
     });
 });
 
-// === GET: Fetch Progress ===
+
 app.get('/progress/:user_id', (req, res) => {
     const sql = `SELECT * FROM progress WHERE user_id = ?`;
 
     db.get(sql, [req.params.user_id], (err, row) => {
         if (err) {
-            console.error("❌ Database Error:", err.message);
+            console.error("Database Error:", err.message);
             return res.status(500).json({ error: err.message });
         }
         if (!row) {
-            return res.status(404).json({ error: "❌ Progress not found" });
+            return res.status(404).json({ error: "Progress not found" });
         }
         res.status(200).json(row);
     });
@@ -197,7 +195,9 @@ app.delete('/user/:id', (req, res) => {
 });
 
 
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+

@@ -5,7 +5,7 @@ const db = new sqlite3.Database('./users.db', (err) => {
         console.error("Error opening database:", err.message);
     } else {
         console.log("Connected to SQLite database");
-        // users table
+        
         db.run(`
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,7 +15,6 @@ const db = new sqlite3.Database('./users.db', (err) => {
             )
         `);
 
-        // progress table
         db.run(`
             CREATE TABLE IF NOT EXISTS progress (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,7 +27,6 @@ const db = new sqlite3.Database('./users.db', (err) => {
                 FOREIGN KEY(user_id) REFERENCES users(id)
             )
         `);
-// leaderboard table
 
         db.run(`
             CREATE TABLE IF NOT EXISTS leaderboard (
